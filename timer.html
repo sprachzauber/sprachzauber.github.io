@@ -13,7 +13,8 @@
       justify-content: center;
       height: 100vh;
       margin: 0;
-      background: #f0f0f0;
+      background: #000000;
+      color: #ffffff;
     }
 
     #timer {
@@ -51,7 +52,14 @@
   <button id="startStopBtn" class="button startstop" onclick="toggleTimer()">Start</button>
   <button id="minusBtn" class="button minus" onclick="selectDirection('down')">-</button>
 
+  <audio id="audio_loop" loop>
+    <source src="tick.ogg" type="audio/ogg">
+    Your browser does not support the audio tag.
+  </audio>
+
   <script>
+    const audioElement = document.getElementById('audio_loop');
+
     const urlParams = new URLSearchParams(window.location.search);
     const starttime = urlParams.get('starttime') || '0:00';
     const countdownParam = urlParams.get('countdown') || 'yes';
@@ -136,12 +144,13 @@
     function toggleTimer() {
       unlockAudio();
       if (!direction) {
-        alert("Bitte zuerst eine Richtung (+ oder -) auswählen.");
+        alert("Please select the direction first (+ or -).");
         return;
       }
 
       if (!running) {
         interval = setInterval(tick, 1000);
+        audioElement.play();
         running = true;
         startStopBtn.textContent = "Stop";
       } else {
@@ -150,6 +159,7 @@
     }
 
     function stopTimer() {
+      audioElement.pause();
       clearInterval(interval);
       interval = null;
       running = false;
