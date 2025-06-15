@@ -34,6 +34,7 @@
     .plus { background-color: #4caf50; color: white; }
     .minus { background-color: #e74c3c; color: white; }
     .startstop { background-color: #f39c12; color: white; }
+    .remove { background-color: #336699; color: white; }
 
     .active {
       border-color: #a0a0a0;
@@ -47,6 +48,7 @@
 </head>
 <body>
 
+  <button id="removeBtn" class="button remove" onclick="removeSavedTime()">Remove Time</button>
   <div id="timer">00:00</div>
   <button id="plusBtn" class="button plus" onclick="selectDirection('up')">+</button>
   <button id="startStopBtn" class="button startstop" onclick="toggleTimer()">Start</button>
@@ -61,22 +63,32 @@
     const audioElement = document.getElementById('audio_loop');
 
     const urlParams = new URLSearchParams(window.location.search);
-    const starttime = urlParams.get('starttime') || '0:00';
+    let starttime = urlParams.get('starttime') || '0:00';
+
+    // read stored time from last usage if available
+    const storedTime = localStorage.getItem("storedTime");
+    if (storedTime) {
+      starttime = storedTime;
+    }
+
     const countdownParam = urlParams.get('countdown') || 'yes';
     const defaultDirection = countdownParam === 'no' ? 'up' : 'down';
-
-    let [startMinutes, startSeconds] = starttime.split(':').map(Number);
-    let totalSeconds = startMinutes * 60 + startSeconds;
 
     const timerDisplay = document.getElementById('timer');
     const plusBtn = document.getElementById('plusBtn');
     const minusBtn = document.getElementById('minusBtn');
     const startStopBtn = document.getElementById('startStopBtn');
 
+    let totalSeconds = null;
     let interval = null;
     let direction = null;
     let running = false;
     let audioUnlocked = false;
+
+    function setTotalSeconds() {
+      let [startMinutes, startSeconds] = starttime.split(':').map(Number);
+      totalSeconds = startMinutes * 60 + startSeconds;
+    }
 
     function unlockAudio() {
       if (!audioUnlocked) {
@@ -134,6 +146,15 @@
       updateDisplay();
     }
 
+    function removeSavedTime() {
+      localStorage.removeItem("storedTime");
+
+      // set the time from URL parameters
+      starttime = urlParams.get('starttime') || '0:00';
+      setTotalSeconds();
+      updateDisplay();
+    }
+
     function selectDirection(dir) {
       unlockAudio();
       direction = dir;
@@ -159,6 +180,9 @@
     }
 
     function stopTimer() {
+      // store the time in the local storage of the browser
+      localStorage.setItem("storedTime", timerDisplay.textContent);
+
       audioElement.pause();
       clearInterval(interval);
       interval = null;
@@ -167,6 +191,7 @@
     }
 
     // Initial setup
+    setTotalSeconds();
     updateDisplay();
     selectDirection(defaultDirection);
   </script>
