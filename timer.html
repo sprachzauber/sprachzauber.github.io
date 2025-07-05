@@ -56,6 +56,7 @@
 
   <audio id="audio_loop" loop>
     <source src="tick.ogg" type="audio/ogg">
+    <source src="tick.mp3" type="audio/mpeg">
     Your browser does not support the audio tag.
   </audio>
 
@@ -64,11 +65,28 @@
 
     const urlParams = new URLSearchParams(window.location.search);
     let starttime = urlParams.get('starttime') || '0:00';
+    let useLocalStorage = false;
+
+    // check if local storage is allowed in the browser
+    function isLocalStorageAvailable() {
+      const testKey = '__test__';
+      try {
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+        return true;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    useLocalStorage = isLocalStorageAvailable();
 
     // read stored time from last usage if available
-    const storedTime = localStorage.getItem("storedTime");
-    if (storedTime) {
-      starttime = storedTime;
+    if (useLocalStorage) {
+      const storedTime = localStorage.getItem("storedTime");
+      if (storedTime) {
+        starttime = storedTime;
+      }
     }
 
     const countdownParam = urlParams.get('countdown') || 'yes';
@@ -147,7 +165,9 @@
     }
 
     function removeSavedTime() {
-      localStorage.removeItem("storedTime");
+      if (useLocalStorage) {
+        localStorage.removeItem("storedTime");
+      }
 
       // set the time from URL parameters
       starttime = urlParams.get('starttime') || '0:00';
@@ -181,7 +201,9 @@
 
     function stopTimer() {
       // store the time in the local storage of the browser
-      localStorage.setItem("storedTime", timerDisplay.textContent);
+      if (useLocalStorage) {
+        localStorage.setItem("storedTime", timerDisplay.textContent);
+      }
 
       audioElement.pause();
       clearInterval(interval);
